@@ -1,0 +1,27 @@
+name: AzureRepoBuild
+on:
+  repository_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout Azure Repo
+        run: |
+          git init
+          git remote add AzureRepos ${{ github.event.client_payload.remoteUrl }}
+          git fetch AzureRepos ${{ github.event.client_payload.refUpdate.newObjectId }}
+          git reset --hard ${{ github.event.client_payload.refUpdate.newObjectId }}
+        shell: bash
+
+      - name: Install .NET Core SDK 3.1.101
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.1.101'
+
+      - name: Run Cake script
+        uses: ecampidoglio/cake-action@v1.1.0
